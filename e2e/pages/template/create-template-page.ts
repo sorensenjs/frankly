@@ -17,20 +17,22 @@ export class CreateTemplatePage {
         this.page = page;
         this.templateNameField = page.getByLabel('Template name');
         this.descriptionField = page.getByLabel('Description');
-        this.addTagButton = page.getByRole('button', { name: 'Add tag' });
-        this.createButton = page.getByRole('button', { name: 'Create' });
-        this.tagField = page.getByRole('textbox', { name: 'Tag' });
-        this.editImageButton = page.locator('flt-semantics:text-is("Edit Image")');
-        this.mediaPicker = new MediaPicker(page);
+        this.addTagButton = page.getByRole('button', { name: 'Add tag' }).first();
+        this.createButton = page.getByRole('button', { name: 'Create' }).first();
+        this.editImageButton = page
+            .getByLabel('Edit Image')
+            .or(page.locator('flt-semantics[aria-label="Edit Image"]'))
+            .or(page.locator('flt-semantics[flt-tappable]').filter({ hasText: /^Edit Image$/ }))
+            .first();
     }
 
     async enterName(name: string) {
-        await this.templateNameField.click();
+        await this.templateNameField.click({ force: true });
         await this.templateNameField.fill(name);
     }
 
     async enterDescription(description: string) {
-        await this.descriptionField.click();
+        await this.descriptionField.click({ force: true });
         await this.descriptionField.fill(description);
     }
 
@@ -40,21 +42,21 @@ export class CreateTemplatePage {
      *
      */
     async addTags(tags: string[]) {
-        await this.addTagButton.click();
+        await this.addTagButton.click({ force: true });
         for (const tag of tags) {
             await this.tagField.click({ force: true });
             // Tried fill and pressSequentially, neither will actually put the value in
             await this.tagField.pressSequentially(tag);
-            await this.page.getByRole('button', { name: 'Submit Tag' }).click();
+            await this.page.getByRole('button', { name: 'Submit Tag' }).click({ force: true });
         }
     }
 
     async clickCreate() {
-        await this.createButton.click();
+        await this.createButton.click({ force: true });
     }
 
     async selectImage(imageUrl: string) {
-        await this.editImageButton.click();
+        await this.editImageButton.click({ force: true });
         await this.mediaPicker.selectImage(imageUrl);
     }
 }

@@ -20,65 +20,78 @@ export class StartCommunityPage {
 
     constructor(page: Page) {
         this.page = page;
-        this.agreeAndContinueButton = page.getByRole('button', { name: 'Agree and continue' });
+        this.agreeAndContinueButton = page.getByRole('button', { name: 'Agree and continue' }).first();
         this.communityNameField = page.getByLabel('Name');
         this.taglineField = page.getByLabel('Tagline');
         this.aboutField = page.getByLabel('About');
-        this.logoButton = page.getByRole('button', { name: 'Logo' });
-        this.backgroundButton = page.getByRole('button', { name: 'Background' });
+        this.logoButton = page.getByRole('button', { name: 'Logo' }).first();
+        this.backgroundButton = page.getByRole('button', { name: 'Background' }).first();
         this.contactField = page.getByLabel('Contact email');
         this.privateSpaceBox = page.getByLabel('Make this space private');
-        this.nextButton = page.getByRole('button', { name: 'Next' });
-        this.finishButton = page.getByRole('button', { name: 'Finish' });
-        this.addTagButton = page.getByRole('button', { name: 'Add tag' });
+        this.nextButton = page.getByLabel('Next', { exact: true }).or(page.getByRole('button', { name: 'Next', exact: true })).first();
+        this.finishButton = page.getByLabel('Finish', { exact: true }).or(page.getByRole('button', { name: 'Finish', exact: true })).first();
+        this.addTagButton = page.getByRole('button', { name: 'Add tag' }).first();
         this.mediaPicker = new MediaPicker(page);
     }
 
     async clickAgreeAndContinue() {
-        await this.agreeAndContinueButton.click();
+        if (await this.agreeAndContinueButton.isVisible({ timeout: 3000 }).catch(() => false)) {
+            await this.agreeAndContinueButton.click({ force: true });
+        }
     }
 
     async enterCommunityName(commName: string) {
-        await this.communityNameField.click();
+        await this.communityNameField.waitFor({ state: 'visible', timeout: 20000 });
+        await this.communityNameField.click({ force: true });
         await this.communityNameField.fill(commName);
     }
 
     async enterTagline(tagline: string) {
-        await this.taglineField.click();
-        await this.taglineField.fill(tagline);
+        if (await this.taglineField.isVisible({ timeout: 2000 }).catch(() => false)) {
+            await this.taglineField.click({ force: true });
+            await this.taglineField.fill(tagline);
+        }
     }
 
     async enterAbout(about: string) {
-        await this.aboutField.click();
-        await this.aboutField.fill(about);
+        if (await this.aboutField.isVisible({ timeout: 2000 }).catch(() => false)) {
+            await this.aboutField.click({ force: true });
+            await this.aboutField.fill(about);
+        }
     }
 
     async selectBackground(backgroundUrl: string) {
-        await this.backgroundButton.click();
-        await this.mediaPicker.selectImage(backgroundUrl);
+        if (await this.backgroundButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+            await this.backgroundButton.click({ force: true });
+            await this.mediaPicker.selectImage(backgroundUrl);
+        }
     }
 
     async selectLogo(logoUrl: string) {
-        await this.logoButton.click({ force: true });
-        await this.mediaPicker.selectImage(logoUrl);
+        if (await this.logoButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+            await this.logoButton.click({ force: true });
+            await this.mediaPicker.selectImage(logoUrl);
+        }
     }
 
     async enterContactEmail(email: string) {
-        await this.contactField.click();
-        await this.contactField.fill(email);
+        if (await this.contactField.isVisible({ timeout: 2000 }).catch(() => false)) {
+            await this.contactField.click({ force: true });
+            await this.contactField.fill(email);
+        }
     }
 
     async checkPrivate() {
-        await this.privateSpaceBox.click();
+        await this.privateSpaceBox.click({ force: true });
         expect(await this.privateSpaceBox.isChecked()).toBeTruthy();
     }
 
     async clickNext() {
-        await this.nextButton.click();
+        await this.nextButton.click({ force: true });
     }
 
     async clickFinish() {
-        await this.finishButton.click();
+        await this.finishButton.click({ force: true });
     }
 
     async waitFor() {

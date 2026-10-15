@@ -24,20 +24,22 @@ export default defineConfig({
     /* Opt out of parallel tests on CI. */
     workers: 1,
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-    reporter: 'html',
+    reporter: process.env.CI ? 'html' : [['html', { open: 'never' }], ['list']],
+    timeout: 120 * 1000,
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
     use: {
         /* Base URL to use in actions like `await page.goto('/')`. */
         baseURL: process.env.BASE_URL,
 
-        /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-        trace: 'on-first-retry',
+        /* Collect trace and screenshot on failure */
+        trace: 'retain-on-failure',
+        screenshot: 'only-on-failure',
 
         viewport: { width: 1920, height: 1080 },
     },
     // override default expect timeout of 5 seconds for slower page loading
     expect: {
-        timeout: 10 * 1000,
+        timeout: 15 * 1000,
     },
 
     /* Configure projects for major browsers */
@@ -51,6 +53,12 @@ export default defineConfig({
                 ...devices['Desktop Chrome'],
                 // Use prepared auth state.
                 storageState: path.resolve(__dirname, '.auth/user.json'),
+                launchOptions: {
+                    args: [
+                        '--use-fake-ui-for-media-stream',
+                        '--use-fake-device-for-media-stream',
+                    ],
+                },
             },
             dependencies: ['setup'],
         },

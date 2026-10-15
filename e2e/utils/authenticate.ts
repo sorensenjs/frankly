@@ -24,7 +24,9 @@ export const authenticate = async (page: Page) => {
         process.env.BASE_URL?.includes('localhost') ||
         process.env.BASE_URL?.includes('127.0.0.1')
     ) {
-        await signInAsTestOwner(page);
+        if (!(await isLoggedIn(page))) {
+            await signInAsTestOwner(page);
+        }
     } else {
         // Get the authentication data from the `.auth/user.json` file (using readFileSync)
         const auth = JSON.parse(
@@ -116,6 +118,11 @@ export const signIn = async (page: Page, uname: string, pwd: string) => {
     await signInPage.clickSignInWithEmail();
     await signInPage.enterEmail(uname);
     await signInPage.enterPassword(pwd);
+
+    if (await homeMenu.profileButtonVisible()) {
+        return;
+    }
+
     await signInPage.clickSignIn();
 
     // verify a profile button has appeared, meaning we are now signed in
@@ -138,11 +145,13 @@ export const getMemberDisplayName = () => {
  * @param page
  */
 export const signOut = async (page: Page) => {
+    if (!page || page.isClosed()) return;
     const homeMenu = new HomeMenuBar(page);
     await homeMenu.clickSignOut();
 };
 
 export const isLoggedIn = async (page: Page) => {
+    if (!page || page.isClosed()) return false;
     const homeMenu = new HomeMenuBar(page);
     return await homeMenu.profileButtonVisible();
 };

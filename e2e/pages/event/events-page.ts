@@ -17,6 +17,12 @@ export class EventsPage {
     }
 
     async clickOnEvent(name: string) {
-        await this.page.locator('flt-semantics:text-matches("'.concat(name, '")')).click();
+        const item = this.page
+            .getByLabel(new RegExp(name, 'i'))
+            .or(this.page.locator(`flt-semantics[aria-label*="${name}"]`))
+            .or(this.page.locator(`flt-semantics:text-matches("${name}")`))
+            .or(this.page.getByText(name))
+            .first();
+        await item.click({ force: true });
     }
 }

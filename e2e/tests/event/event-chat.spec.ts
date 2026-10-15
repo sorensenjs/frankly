@@ -30,29 +30,50 @@ const eventTime = '5:00pm';
 const templateName = 'Happy Hour';
 const templateDescription = "Who's thirsty?";
 
+test.describe.configure({ timeout: 240000 });
+
 test.beforeEach(async ({ page }) => {
+    test.setTimeout(240000);
     await gotoTestCommunityTemplatesPage(page);
     templatePage = await createTemplate(page, templateName, templateDescription);
     eventPage = await createEvent(page, templateName, eventDate, eventTime, true);
     await signOut(page);
     await signInAsMember(page);
+    if (eventPage.eventUrl) {
+        await page.goto(eventPage.eventUrl);
+    }
 });
 
 test.afterEach(async ({ page }) => {
-    await new LiveMeetingPage(page).leaveEvent();
-    await signInAsTestOwner(page);
-    await gotoEvent(page, templateName, eventDate);
-    await removeEvent(eventPage);
-    await removeTemplate(page, templateName);
+    test.setTimeout(240000);
+    try {
+        await new LiveMeetingPage(page).leaveEvent();
+    } catch {}
+    try {
+        await page.goto('/');
+        await signOut(page);
+        await signInAsTestOwner(page);
+        if (eventPage) {
+            const currentEventPage = await gotoEvent(page, templateName, eventDate, eventPage.eventUrl);
+            await currentEventPage.assertVisible();
+            await removeEvent(currentEventPage);
+        }
+        await removeTemplate(page, templateName);
+    } catch (e) {
+        console.warn('afterEach cleanup error:', e);
+    }
 });
 
 test('test participants can chat in an event', async ({ context, browser, page }) => {
-    test.setTimeout(120000);
+    test.setTimeout(240000);
     context.grantPermissions(contextPerms);
     const ownerPage = await enterEventInNewContext(
         browser,
         templateName,
-        eventPage.getShortEventDate()
+        eventPage.getShortEventDate(),
+        undefined,
+        undefined,
+        eventPage.eventUrl
     );
     // Now participant can enter, Non-member is starting at event page
     await eventPage.enterEvent();

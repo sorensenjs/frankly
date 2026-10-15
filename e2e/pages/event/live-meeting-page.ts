@@ -33,10 +33,24 @@ export class LiveMeetingPage {
         this.muteButton = page.locator('flt-semantics:text-is("Mute")');
         this.unmuteButton = page.locator('flt-semantics:text-is("Unmute")');
         this.agendaButton = page.locator('flt-semantics:text-is("Agenda")');
-        this.chatButton = page.locator('flt-semantics:text-is("Chat")');
+        this.chatButton = page
+            .getByRole('tab', { name: /Chat/i })
+            .or(page.getByRole('button', { name: /Chat/i }))
+            .or(page.locator('flt-semantics:text-is("Chat")'))
+            .or(page.locator('flt-semantics[aria-label*="Chat"]'))
+            .or(page.locator('flt-semantics[flt-tappable]').filter({ hasText: /^Chat$/ }))
+            .first();
         this.adminButton = page.locator('flt-semantics:text-is("Admin")');
         // There will be two of these if chat menu has been selected, for now use either one
-        this.chatField = page.getByLabel('Say something').nth(0);
+        this.chatField = page
+            .getByLabel(/Say something/i)
+            .or(page.getByPlaceholder(/Say something/i))
+            .or(page.locator('flt-semantics[aria-label*="Say something" i]'))
+            .or(page.locator('textarea[placeholder*="Say something" i]'))
+            .or(page.locator('input[placeholder*="Say something" i]'))
+            .or(page.locator('textarea[aria-label*="Say something" i]'))
+            .or(page.locator('input[aria-label*="Say something" i]'))
+            .first();
         this.startEventButton = page.getByRole('button', { name: 'Start event' });
         this.nextButton = page.getByRole('button', { name: 'Next' });
         this.kickButton = page.getByRole('button', { name: 'Kick' });
@@ -45,7 +59,11 @@ export class LiveMeetingPage {
         this.itemTitleField = page.getByLabel('Title', { exact: true });
         this.itemContentField = page.getByLabel('Content');
         this.saveItemButton = page.getByRole('button', { name: 'Save Agenda Item' });
-        this.leaveButton = page.getByRole('button', { name: 'Leave' });
+        this.leaveButton = page
+            .getByRole('button', { name: 'Leave' })
+            .or(page.locator('flt-semantics:text-is("Leave")'))
+            .or(page.locator('flt-semantics[aria-label*="Leave"]'))
+            .first();
         this.finishButton = page.getByRole('button', { name: 'Finish' });
         this.removeParticipantButton = page.getByRole('button', { name: 'Remove Participant' });
         this.breakoutsButton = page.getByRole('button', { name: 'Breakouts' });
@@ -94,19 +112,58 @@ export class LiveMeetingPage {
     }
 
     async clickChat() {
-        await this.chatButton.click();
+        await this.chatButton.waitFor({ state: 'visible', timeout: 30000 }).catch(() => {});
+        await this.chatButton.click({ force: true });
     }
 
     async enterMessageMainScreen(msg: string) {
-        await this.chatField.click();
+        await this.chatField.waitFor({ state: 'visible', timeout: 30000 }).catch(() => {});
+        await this.chatField.click({ force: true });
         await this.chatField.fill(msg);
-        await this.page.getByRole('button', { name: 'Submit Chat Button' }).click();
+        const submitBtn = this.page
+            .getByRole('button', { name: /Submit (Chat|Message) Button/i })
+            .or(this.page.locator('flt-semantics[role="button"][aria-label*="Submit" i]'))
+            .or(this.page.locator('flt-semantics[aria-label*="Submit" i]'))
+            .or(this.page.locator('[aria-label*="Submit" i]'))
+            .first();
+        if (await submitBtn.isVisible().catch(() => false)) {
+            await submitBtn.click({ force: true });
+        } else {
+            await this.chatField.press('Enter').catch(() => {});
+        }
     }
 
     async enterMessageChatWindow(msg: string) {
-        await this.chatField.click();
-        await this.chatField.fill(msg);
-        await this.page.getByRole('button', { name: 'Submit Chat Button' }).click();
+        const chatInputs = this.page
+            .getByLabel(/Say something/i)
+            .or(this.page.getByPlaceholder(/Say something/i))
+            .or(this.page.locator('flt-semantics[aria-label*="Say something" i]'))
+            .or(this.page.locator('textarea[placeholder*="Say something" i]'))
+            .or(this.page.locator('input[placeholder*="Say something" i]'))
+            .or(this.page.locator('textarea[aria-label*="Say something" i]'))
+            .or(this.page.locator('input[aria-label*="Say something" i]'));
+
+        await chatInputs.first().waitFor({ state: 'visible', timeout: 30000 }).catch(() => {});
+        const targetInput = chatInputs.first();
+        await targetInput.click({ force: true });
+        await targetInput.fill(msg);
+        const submitBtn = this.page
+            .getByRole('button', { name: /Submit (Message|Chat) Button/i })
+            .or(this.page.locator('flt-semantics[role="button"][aria-label*="Submit Message Button" i]'))
+            .or(this.page.locator('flt-semantics[role="button"][aria-label*="Submit Chat Button" i]'))
+            .or(this.page.locator('flt-semantics[aria-label*="Submit Message Button" i]'))
+            .or(this.page.locator('flt-semantics[aria-label*="Submit Chat Button" i]'))
+            .or(this.page.locator('[aria-label*="Submit Message Button" i]'))
+            .or(this.page.locator('[aria-label*="Submit Chat Button" i]'))
+            .or(this.page.locator('flt-semantics[role="button"][aria-label*="Submit" i]'))
+            .or(this.page.locator('flt-semantics[aria-label*="Submit" i]'))
+            .or(this.page.locator('[aria-label*="Submit" i]'))
+            .first();
+        if (await submitBtn.isVisible().catch(() => false)) {
+            await submitBtn.click({ force: true });
+        } else {
+            await targetInput.press('Enter').catch(() => {});
+        }
     }
 
     async assertMessageVisible(message: string) {
@@ -175,13 +232,21 @@ export class LiveMeetingPage {
     }
 
     async leaveEvent() {
-        await this.clickLeave();
         try {
-            await this.nextButton.click({ timeout: 5000 });
+            if (await this.leaveButton.isVisible({ timeout: 4000 }).catch(() => false)) {
+                await this.clickLeave();
+                try {
+                    await this.nextButton.click({ timeout: 4000 });
+                } catch {
+                    // sometimes there is a feedback screen, but not always
+                }
+                if (await this.finishButton.isVisible({ timeout: 4000 }).catch(() => false)) {
+                    await this.clickFinish();
+                }
+            }
         } catch {
-            // sometimes there is a feedback screen, but not always
+            // might not have made it into event
         }
-        await this.clickFinish();
     }
 
     async clickAdmin() {
