@@ -8,8 +8,12 @@ import { expect, Page, TestInfo } from '@playwright/test';
  */
 export const enableAccessibility = async (page: Page) => {
     await page.addInitScript(() => {
-        // Make sure body has loaded.
-        window.addEventListener('DOMContentLoaded', () => {
+        function observePlaceholder() {
+            const placeholder = document.querySelector('flt-semantics-placeholder');
+            if (placeholder) {
+                (placeholder as HTMLElement).click();
+                return;
+            }
             const observer = new MutationObserver(() => {
                 const selector = document.querySelector('flt-semantics-placeholder');
                 if (selector) {
@@ -17,13 +21,25 @@ export const enableAccessibility = async (page: Page) => {
                     observer.disconnect();
                 }
             });
-            observer.observe(document.body, {
-                attributes: false,
-                childList: true,
-                characterData: false,
-                subtree: true,
-            });
-        });
+            if (document.body) {
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true,
+                });
+            } else {
+                window.addEventListener('DOMContentLoaded', () => {
+                    observer.observe(document.body, {
+                        childList: true,
+                        subtree: true,
+                    });
+                });
+            }
+        }
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', observePlaceholder);
+        } else {
+            observePlaceholder();
+        }
     });
 };
 

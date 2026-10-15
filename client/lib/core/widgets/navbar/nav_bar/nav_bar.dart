@@ -118,7 +118,9 @@ class NavBarState extends State<NavBar> implements NavBarView {
   }
 
   Widget _buildHeaderContent() {
-    final canViewCommunityLinks = _presenter.canViewCommunityLinks();
+    final canViewCommunityLinks =
+        context.watchOrNull<CommunityPermissionsProvider>()?.canViewCommunityLinks ??
+        _presenter.canViewCommunityLinks();
     final isOnCommunityPage = _presenter.isCommunityLocation();
     final currentCommunity = context.watch<NavBarProvider>().currentCommunity;
     final showBottomNavBar = _presenter.showBottomNavBar(context);
@@ -153,7 +155,9 @@ class NavBarState extends State<NavBar> implements NavBarView {
     Community? currentCommunity,
     bool isOnCommunityPage,
   ) {
-    final canViewCommunityLinks = _presenter.canViewCommunityLinks();
+    final canViewCommunityLinks =
+        context.watchOrNull<CommunityPermissionsProvider>()?.canViewCommunityLinks ??
+        _presenter.canViewCommunityLinks();
     final isMobile = _presenter.isMobile(context);
     final showCommunityMembershipButton = !canViewCommunityLinks && !isMobile;
 
@@ -189,7 +193,9 @@ class NavBarState extends State<NavBar> implements NavBarView {
   }
 
   List<Widget> _buildRightSideOfNav(Community? currentCommunity) {
-    final canViewCommunityLinks = _presenter.canViewCommunityLinks();
+    final canViewCommunityLinks =
+        context.watchOrNull<CommunityPermissionsProvider>()?.canViewCommunityLinks ??
+        _presenter.canViewCommunityLinks();
     final isCommunityLocation = _presenter.isCommunityLocation();
     final showBottomNav = _presenter.showBottomNavBar(context);
     final isMobile = _presenter.isMobile(context);

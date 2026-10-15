@@ -114,6 +114,7 @@ export const createTemplate = async (
     await createPage.clickCreate();
     const templatePage = new TemplatePage(page, templateName);
     templatePage.setDescription(description);
+    await templatePage.assertVisible();
     return templatePage;
 };
 

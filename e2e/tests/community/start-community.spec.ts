@@ -12,7 +12,7 @@ import { test } from '../../custom-test-fixture';
  * (Note this test assumes that the user defined as OWNER has this permission)
  */
 test('test owner can start a public community', async ({ page }) => {
-    new HomePage(page).clickStartCommunity();
+    await new HomePage(page).clickStartCommunity();
     const startCommPage = new StartCommunityPage(page);
     await startCommPage.clickAgreeAndContinue();
     await startCommPage.enterCommunityName('Cat Lovers Unite');

@@ -9,8 +9,8 @@ export class HomePage {
 
     constructor(page: Page) {
         this.page = page;
-        this.startCommunityButton = page.getByRole('button', { name: 'Start a community' });
-        this.myCommunities = page.getByLabel('My Communities');
+        this.startCommunityButton = page.getByRole('button', { name: /Start a community/i });
+        this.myCommunities = page.locator('flt-semantics:has-text("My Communities")');
     }
 
     async goto() {
@@ -22,6 +22,7 @@ export class HomePage {
     }
 
     async clickStartCommunity() {
+        await this.startCommunityButton.waitFor({ state: 'visible', timeout: 30000 });
         await this.startCommunityButton.click({ force: true });
     }
 

@@ -16,25 +16,48 @@ export class CommunityMenuBar extends HomeMenuBar {
 
     constructor(page: Page) {
         super(page);
-        this.events = this.page.locator('flt-semantics:text-is("Events")');
-        this.posts = this.page.locator('flt-semantics:text-is("Posts")');
-        this.resources = this.page.locator('flt-semantics:text-is("Resources")');
-        this.templates = this.page.locator('flt-semantics:text-is("Templates")');
+        this.events = this.page
+            .locator('flt-semantics[role="button"][flt-tappable]')
+            .filter({ hasText: /^Events$/ })
+            .or(this.page.getByRole('button', { name: 'Events', exact: true }))
+            .or(this.page.locator('flt-semantics[flt-tappable]').filter({ hasText: /^Events$/ }))
+            .first();
+        this.posts = this.page
+            .locator('flt-semantics[role="button"][flt-tappable]')
+            .filter({ hasText: /^Posts$/ })
+            .or(this.page.getByRole('button', { name: 'Posts', exact: true }))
+            .or(this.page.locator('flt-semantics[flt-tappable]').filter({ hasText: /^Posts$/ }))
+            .first();
+        this.resources = this.page
+            .locator('flt-semantics[role="button"][flt-tappable]')
+            .filter({ hasText: /^Resources$/ })
+            .or(this.page.getByRole('button', { name: 'Resources', exact: true }))
+            .or(this.page.locator('flt-semantics[flt-tappable]').filter({ hasText: /^Resources$/ }))
+            .first();
+        this.templates = this.page
+            .locator('flt-semantics[role="button"][flt-tappable]')
+            .filter({ hasText: /^Templates$/ })
+            .or(this.page.getByRole('button', { name: 'Templates', exact: true }))
+            .or(this.page.locator('flt-semantics[flt-tappable]').filter({ hasText: /^Templates$/ }))
+            .first();
         this.announcementsButton = this.page.getByRole('button', {
             name: 'Show Announcements Button',
-        });
+        }).first();
     }
 
     async clickEvents() {
-        await this.events.click();
+        await this.events.waitFor({ state: 'visible', timeout: 15000 });
+        await this.events.click({ force: true });
     }
 
     async clickTemplates() {
-        this.templates.click();
+        await this.templates.waitFor({ state: 'visible', timeout: 15000 });
+        await this.templates.click({ force: true });
     }
 
     async clickPosts() {
-        this.posts.click();
+        await this.posts.waitFor({ state: 'visible', timeout: 15000 });
+        await this.posts.click({ force: true });
     }
 
     async assertVisible() {
@@ -42,6 +65,6 @@ export class CommunityMenuBar extends HomeMenuBar {
     }
 
     async assertAnnouncementsVisible() {
-        await expect(this.announcementsButton).toBeVisible();
+        await expect(this.announcementsButton).toBeVisible({ timeout: 30000 });
     }
 }

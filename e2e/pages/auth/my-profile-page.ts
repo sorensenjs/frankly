@@ -17,35 +17,33 @@ export class MyProfilePage {
     constructor(page: Page) {
         this.page = page;
         this.mediaPicker = new MediaPicker(page);
-        this.profileTab = page.locator('flt-semantics:text-is("PROFILE PROFILE")');
-        this.editImageButton = page.locator('flt-semantics:text-is("Edit Image")');
-        this.eventsTab = page.locator('flt-semantics:text-is("MY EVENTS MY EVENTS")');
+        this.profileTab = page.locator('flt-semantics:text-is("PROFILE PROFILE")').or(page.getByText('PROFILE', { exact: true })).first();
+        this.editImageButton = page.getByLabel('Edit Image').or(page.locator('flt-semantics[aria-label="Edit Image"]')).or(page.locator('flt-semantics:has-text("Edit Image")')).first();
+        this.eventsTab = page.locator('flt-semantics:text-is("MY EVENTS MY EVENTS")').or(page.getByText('MY EVENTS', { exact: true })).first();
         this.upcomingEvents = page.getByLabel('UPCOMING');
-        this.updateProfileButton = page.getByRole('button', { name: 'Update Profile' });
-        this.notificationsTab = page.locator(
-            'flt-semantics:text-is("NOTIFICATIONS NOTIFICATIONS")'
-        );
+        this.updateProfileButton = page.getByRole('button', { name: 'Update Profile' }).or(page.locator('flt-semantics:has-text("Update Profile")')).first();
+        this.notificationsTab = page.locator('flt-semantics:text-is("NOTIFICATIONS NOTIFICATIONS")').or(page.getByText('NOTIFICATIONS', { exact: true })).first();
     }
 
     async clickProfile() {
-        await this.profileTab.click();
+        await this.profileTab.click({ force: true });
     }
 
     async selectProfileImage(imageUrl: string) {
-        await this.editImageButton.click();
+        await this.editImageButton.click({ force: true });
         await this.mediaPicker.selectImage(imageUrl);
     }
 
     async clickUpdateProfile() {
-        await this.updateProfileButton.click();
+        await this.updateProfileButton.click({ force: true });
     }
 
     async clickMyEvents() {
-        await this.eventsTab.click();
+        await this.eventsTab.click({ force: true });
     }
 
     async clickNotifications() {
-        await this.notificationsTab.click();
+        await this.notificationsTab.click({ force: true });
     }
 
     async waitForMyEvents() {

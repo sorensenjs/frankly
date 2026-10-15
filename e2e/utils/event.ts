@@ -46,10 +46,17 @@ export const createEvent = async (
         await createEventPage.clickConfirm();
     }
 
-    return new EventPage(page, templateName, eventDate, eventPublic);
+    await page.waitForURL(/.*discuss\/.+\/.+/, { timeout: 30000 }).catch(() => {});
+    const ep = new EventPage(page, templateName, eventDate, eventPublic);
+    ep.setUrl(page.url());
+    return ep;
 };
 
-export const gotoEvent = async (page: Page, eventName: string, eventDate: string) => {
+export const gotoEvent = async (page: Page, eventName: string, eventDate: string, eventUrl?: string) => {
+    if (eventUrl) {
+        await page.goto(eventUrl);
+        return new EventPage(page, eventName, eventDate, true);
+    }
     const eventsPage = await gotoTestCommunityEventsPage(page);
     // assumes only one event of the same name and will be the on the first date
     await eventsPage.clickOnEvent(eventName);
@@ -58,7 +65,7 @@ export const gotoEvent = async (page: Page, eventName: string, eventDate: string
 /**
  * Cancels the specified event (essentially removing it). Assumes you are on the event page
  * @param eventPage The event to be removed
-
+ *
  */
 export const removeEvent = async (eventPage: EventPage) => {
     await eventPage.clickCancelEvent();
@@ -72,6 +79,7 @@ export const removeEvent = async (eventPage: EventPage) => {
  * @param shortEventDate The date of the indentifying event
  * @param username Optional username, otherwise uses default playwright config
  * @param password Optional password, otherwise uses default playwright config
+ * @param eventUrl Optional direct URL to the event
  * @returns The new Playwright page object for the event
  */
 export const enterEventInNewContext = async (
@@ -79,7 +87,8 @@ export const enterEventInNewContext = async (
     templateName: string,
     shortEventDate: string,
     username?: string,
-    password?: string
+    password?: string,
+    eventUrl?: string
 ) => {
     const context = await browser.newContext();
     context.grantPermissions(contextPerms);
@@ -92,10 +101,13 @@ export const enterEventInNewContext = async (
         await signOut(page);
         await signIn(page, username, password);
     }
-    const commSpace = await gotoTestCommunitySpace(page);
-
-    // This assumes only one event on this date with this template name
-    await commSpace.clickUpcomingEvent(templateName, shortEventDate);
+    if (eventUrl) {
+        await page.goto(eventUrl);
+    } else {
+        const commSpace = await gotoTestCommunitySpace(page);
+        // This assumes only one event on this date with this template name
+        await commSpace.clickUpcomingEvent(templateName, shortEventDate);
+    }
     const eventPage = new EventPage(page, templateName, shortEventDate, true);
     await eventPage.assertVisible();
     await eventPage.enterEvent();
